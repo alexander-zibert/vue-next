@@ -24,37 +24,18 @@ export function track(target: any, key: string) {
     return
   }
 
-  let depsMap = targetMap.get(target)
-  if (!depsMap) {
-    depsMap = new Map()
-    targetMap.set(target, depsMap)
-  }
+  let depsMap = targetMap.get(target) || new Map()
+  targetMap.set(target, depsMap)
 
-  let dep = depsMap.get(key)
-  if (!dep) {
-    dep = new Set()
-    depsMap.set(key, dep)
-  }
+  let dep = depsMap.get(key) || new Set()
+  depsMap.set(key, dep)
 
   dep.add(effect)
   effect.deps.push(dep)
 }
 
 export function trigger(target: any, key: string) {
-  const depsMap = targetMap.get(target)
-  if (!depsMap) {
-    // never been tracked
-    return
-  }
-  const effects = new Set<ReactiveEffect>()
-  const effectsToAdd = depsMap.get(key)
-  if (effectsToAdd) {
-    effectsToAdd.forEach(effect => {
-      effects.add(effect)
-    })
-  }
-  const run = (effect: ReactiveEffect) => {
-    effect()
-  }
-  effects.forEach(run)
+  const depsMap = targetMap.get(target) || new Map()
+  const effects = depsMap.get(key) || []
+  effects.forEach((effect: ReactiveEffect) => effect())
 }
